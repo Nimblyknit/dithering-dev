@@ -8,6 +8,7 @@
 	import DitherOptions from './DitherOptions.svelte';
 	import { createEventDispatcher } from 'svelte';
 	import { glStore } from './ordered';
+	import { hueGlStore } from './hueLightness';
 
 	/**
 	 * @type {import("svelte").EventDispatcher<{cancel: void}>}
@@ -44,9 +45,16 @@
 
 	/**
 	 * @param {HTMLCanvasElement} canvas
+	 * @param {import('./DitheredImage.svelte').DitherConfig} config
 	 */
-	async function save(canvas) {
+	async function save(canvas, config) {
 		if (!canvas) return;
+
+		if (config.mode === 'hue_lightness') {
+			await saveCanvasAsImage($hueGlStore, 'dithered', 'png');
+			return;
+		}
+
 		await saveCanvasAsImage($glStore, 'dithered', 'png');
 	}
 
@@ -59,7 +67,13 @@
 		height,
 		thresholdMap: null,
 		noiseIntensity: 0.08,
+		hueThresholdMap: null,
+		hueNoiseIntensity: 0.08,
 		palette: null,
+		colors: [
+			[0, 0, 0],
+			[255, 255, 255]
+		],
 		diffusionStrength: 1,
 		diffusionMatrix: [[1]],
 		diffusionMatrixOriginX: 0
@@ -74,7 +88,13 @@
 		height: image_data.height,
 		thresholdMap: null,
 		noiseIntensity: 0.08,
+		hueThresholdMap: null,
+		hueNoiseIntensity: 0.08,
 		palette: null,
+		colors: [
+			[0, 0, 0],
+			[255, 255, 255]
+		],
 		diffusionStrength: 1,
 		diffusionMatrix: [[1]],
 		diffusionMatrixOriginX: 0
@@ -122,12 +142,14 @@
 			<button class="contents" on:click={() => (options_left_open = !options_left_open)}>
 				<Icon src={options_left_open ? ChevronDown : ChevronUp} class="h-6 w-6 text-gray-500" />
 			</button>
+
 			<div class="flex flex-1 items-center justify-between">
 				<h1 class="font-bold">Options</h1>
+
 				<Button
 					on:click={() => {
 						if (!canvas_left) return;
-						save(canvas_left);
+						save(canvas_left, config_left);
 					}}
 					disabled={!image_data}
 				>
@@ -136,6 +158,7 @@
 				</Button>
 			</div>
 		</header>
+
 		<div
 			class:hidden={!options_left_open}
 			class="flex max-h-full flex-1 flex-col gap-8 overflow-y-scroll bg-gray-50 p-4 py-8"
@@ -143,6 +166,7 @@
 			<DitherOptions bind:config={config_left} bind:image_data />
 		</div>
 	</aside>
+
 	<aside
 		style="overflow: hidden;"
 		class="
@@ -160,12 +184,14 @@
 			<button class="contents" on:click={() => (options_right_open = !options_right_open)}>
 				<Icon src={options_right_open ? ChevronDown : ChevronUp} class="h-6 w-6 text-gray-500" />
 			</button>
+
 			<div class="flex flex-1 items-center justify-between">
 				<h1 class="font-bold">Options</h1>
+
 				<Button
 					on:click={() => {
 						if (!canvas_right) return;
-						save(canvas_right);
+						save(canvas_right, config_right);
 					}}
 					disabled={!image_data}
 				>
@@ -174,6 +200,7 @@
 				</Button>
 			</div>
 		</header>
+
 		<div
 			class:hidden={!options_right_open}
 			class="flex max-h-full flex-1 flex-col gap-8 overflow-y-scroll bg-gray-50 p-4 py-8"
@@ -204,13 +231,11 @@
 
 	.options-left {
 		width: 100%;
-
 		max-height: 40vh;
 	}
 
 	.options-right {
 		width: 100%;
-
 		max-height: 40vh;
 	}
 
@@ -232,7 +257,6 @@
 			grid-area: left;
 			align-self: end;
 			width: 350px;
-
 			max-height: 100%;
 		}
 
@@ -240,7 +264,6 @@
 			grid-area: right;
 			align-self: end;
 			width: 350px;
-
 			max-height: 100%;
 		}
 	}
