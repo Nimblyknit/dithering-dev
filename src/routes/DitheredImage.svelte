@@ -1,13 +1,14 @@
 <script context="module">
 	/**
-	 * @typedef {'ordered' | 'error_diffusion' | 'none'} DitherMode
+	 * @typedef {'ordered' | 'hue_lightness' | 'error_diffusion' | 'none'} DitherMode
 	 * @typedef {{ width: number, height: number }} BaseDitherConfig
 	 *
 	 * @typedef {{ mode: 'none' }} NoDitherConfig
 	 * @typedef {{ mode: 'ordered', noiseIntensity: number, thresholdMap: ImageData | null, palette: ImageData | null }} OrderedDitherConfig
+	 * @typedef {{ mode: 'hue_lightness', hueNoiseIntensity: number, hueThresholdMap: ImageData | null, colors: number[][] }} HueLightnessDitherConfig
 	 * @typedef {{ mode: 'error_diffusion', palette: ImageData | null, diffusionStrength: number, diffusionMatrix: number[][], diffusionMatrixOriginX: number }} ErrorDiffusionDitherConfig
 	 *
-	 * @typedef {(NoDitherConfig | OrderedDitherConfig | ErrorDiffusionDitherConfig) & BaseDitherConfig & Record<any,any>} DitherConfig
+	 * @typedef {(NoDitherConfig | OrderedDitherConfig | HueLightnessDitherConfig | ErrorDiffusionDitherConfig) & BaseDitherConfig & Record<any,any>} DitherConfig
 	 */
 </script>
 
@@ -15,6 +16,7 @@
 	import ImageDataCanvas from './ImageDataCanvas.svelte';
 	import { errorDiffusionDithering } from './errorDiffusion';
 	import { orderedDithering } from './ordered';
+	import { hueLightnessDithering } from './hueLightness';
 
 	/**
 	 * @type {HTMLCanvasElement | null}
@@ -54,6 +56,7 @@
 				height={config.height}
 			/>
 		{/if}
+
 	{:else if config.mode === 'ordered'}
 		{#if config.thresholdMap && config.palette}
 			<canvas
@@ -72,6 +75,26 @@
 				aria-label="Dithered Image"
 			/>
 		{/if}
+
+	{:else if config.mode === 'hue_lightness'}
+		{#if config.hueThresholdMap && config.colors && config.colors.length > 0}
+			<canvas
+				class="pixelated w-full"
+				use:hueLightnessDithering={{
+					image: image_data,
+					noiseIntensity: config.hueNoiseIntensity,
+					colors: config.colors,
+					output_width: config.width,
+					output_height: config.height,
+					thresholdMap: config.hueThresholdMap
+				}}
+				bind:this={canvas}
+				width={config.width}
+				height={config.height}
+				aria-label="Hue-Lightness Dithered Image"
+			/>
+		{/if}
+
 	{:else if config.mode === 'none'}
 		<ImageDataCanvas
 			data={image_data}
