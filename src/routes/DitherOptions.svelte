@@ -3,6 +3,7 @@
 	import ErrorDiffusionOptions from './errorDiffusion/ErrorDiffusionOptions.svelte';
 	import PaletteOptions from './palette/PaletteOptions.svelte';
 	import OrderedDitheringOptions from './ordered/OrderedDitheringOptions.svelte';
+	import HueLightnessOptions from './hueLightness/HueLightnessOptions.svelte';
 	import DimensionsInput from './ImageSizeInput.svelte';
 	import Checkbox from './primitives/Checkbox.svelte';
 
@@ -63,6 +64,7 @@
 		tabs={[
 			{ label: 'None', value: 'none' },
 			{ label: 'Ordered', value: 'ordered' },
+			{ label: 'Hue-Lightness', value: 'hue_lightness' },
 			{ label: 'Error Diffusion', value: 'error_diffusion' }
 		]}
 		bind:selected={config.mode}
@@ -75,10 +77,18 @@
 			bind:diffusionOriginX={config.diffusionMatrixOriginX}
 		/>
 	</div>
+
 	<div class={config.mode === 'ordered' ? 'contents' : 'hidden'}>
 		<OrderedDitheringOptions
 			bind:thresholdMap={config.thresholdMap}
 			bind:noiseIntensity={config.noiseIntensity}
+		/>
+	</div>
+
+	<div class={config.mode === 'hue_lightness' ? 'contents' : 'hidden'}>
+		<HueLightnessOptions
+			bind:thresholdMap={config.hueThresholdMap}
+			bind:noiseIntensity={config.hueNoiseIntensity}
 		/>
 	</div>
 </div>
@@ -87,5 +97,9 @@
 <div class="grid gap-3" class:hidden={config.mode === 'none'}>
 	<h2 class="mb-2 text-base font-semibold leading-7 text-black">Colors</h2>
 
-	<PaletteOptions bind:palette={config.palette} image={image_data} />
+	<PaletteOptions
+		bind:palette={config.palette}
+		bind:colors={config.colors}
+		image={image_data}
+	/>
 </div>
