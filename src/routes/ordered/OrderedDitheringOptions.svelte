@@ -12,30 +12,11 @@
 	export let noiseIntensity;
 
 	/**
-	 * @typedef {'standard' | 'hue_lightness'} OrderedMethod
-	 */
-
-	/** @type {OrderedMethod} */
-	export let orderedMethod = 'standard';
-
-	/**
 	 * @typedef {'bayer' | 'blue_noise' | 'white_noise'} ThresholdMapMode
 	 */
 
 	/** @type {ThresholdMapMode} */
 	let thresholdMode = 'bayer';
-
-	/** @type {import("../primitives/Select.svelte").Options<OrderedMethod>} */
-	const orderedMethodOptions = [
-		{
-			name: 'Standard',
-			value: 'standard'
-		},
-		{
-			name: 'Hue-Lightness',
-			value: 'hue_lightness'
-		}
-	];
 
 	/** @type {import("../primitives/Select.svelte").Options<ThresholdMapMode>} */
 	const thresholdMapOptions = [
@@ -87,8 +68,6 @@
 		}
 	}
 </script>
-
-<Select label="Method" options={orderedMethodOptions} bind:selected={orderedMethod} />
 
 <Slider
 	label="Noise Intensity ({noiseIntensity})"

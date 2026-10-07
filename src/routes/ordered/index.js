@@ -11,7 +11,7 @@ import { derived, writable } from 'svelte/store';
  *   palette: ImageData;
  *   output_width: number;
  *   output_height: number;
- * }} DitheringOptions
+ *}} DitheringOptions
  */
 
 /** @type {import("svelte/store").Writable<WebGLRenderingContext>} */
