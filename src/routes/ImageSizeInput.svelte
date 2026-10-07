@@ -1,43 +1,55 @@
 <script>
 	import { ID } from '$lib/math/id-generation.js';
-	import { Icon, LockClosed } from 'svelte-hero-icons';
+	import { Icon, LockClosed, LockOpen } from 'svelte-hero-icons';
 
-	/** @type {number}	 */
+	/** @type {number} */
 	export let width;
-	/** @type {number}	 */
+	/** @type {number} */
+	export let height;
+	/** @type {number} */
 	export let aspectRatio;
 
-	/** @type {number | null}	 */
+	/** @type {number | null} */
 	export let maxWidth = null;
-	/** @type {number | null}	 */
+	/** @type {number | null} */
 	export let maxHeight = null;
 
-	/** @type {number | null}	 */
+	/** @type {number | null} */
 	export let minWidth = null;
-	/** @type {number | null}	 */
+	/** @type {number | null} */
 	export let minHeight = null;
 
-	/** @type {boolean}	 */
+	/** @type {boolean} */
 	export let disabled = false;
+
+	let aspectRatioLocked = true;
 
 	/** @param {any} e */
 	function onWidthInput(e) {
-		const newWidth = e.target.value;
+		const newWidth = Number(e.target.value);
 		if (!newWidth) return;
 		if (minWidth !== null && newWidth < minWidth) return;
 		if (maxWidth !== null && newWidth > maxWidth) return;
-		width = newWidth;
-	}
 
-	$: height = Math.round(width / aspectRatio);
+		width = newWidth;
+
+		if (aspectRatioLocked) {
+			height = Math.round(width / aspectRatio);
+		}
+	}
 
 	/** @param {any} e */
 	function onHeightInput(e) {
-		const height = e.target.value;
-		if (!height) return;
-		if (minHeight !== null && height < minHeight) return;
-		if (maxHeight !== null && height > maxHeight) return;
-		width = Math.round(aspectRatio * height);
+		const newHeight = Number(e.target.value);
+		if (!newHeight) return;
+		if (minHeight !== null && newHeight < minHeight) return;
+		if (maxHeight !== null && newHeight > maxHeight) return;
+
+		height = newHeight;
+
+		if (aspectRatioLocked) {
+			width = Math.round(aspectRatio * height);
+		}
 	}
 
 	let withId = ID();
@@ -74,9 +86,20 @@
 		</div>
 	</div>
 
-	<span class=" cursor-not-allowed pb-2 {disabled ? 'text-gray-300' : 'text-gray-500'}">
-		<Icon src={LockClosed} class="h-4 w-4" solid />
-	</span>
+	<button
+		type="button"
+		on:click={() => (aspectRatioLocked = !aspectRatioLocked)}
+		disabled={disabled}
+		class="pb-2 {disabled ? 'cursor-not-allowed text-gray-300' : 'cursor-pointer text-gray-500'}"
+		title={aspectRatioLocked ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
+	>
+		<Icon
+			src={aspectRatioLocked ? LockClosed : LockOpen}
+			class="h-4 w-4"
+			solid
+		/>
+	</button>
+
 	<div class="w-full">
 		<label
 			for="height-{heightId}"
