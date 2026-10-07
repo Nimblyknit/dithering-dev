@@ -22,11 +22,11 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-- name: Use Node.js 20
-  uses: actions/setup-node@v3
-  with:
-    node-version: 20
-    cache: 'pnpm'
+      - name: Use Node.js 20
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'pnpm'
 
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
