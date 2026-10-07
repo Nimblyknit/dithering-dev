@@ -4,8 +4,8 @@
 	 * @typedef {{ width: number, height: number }} BaseDitherConfig
 	 *
 	 * @typedef {{ mode: 'none' }} NoDitherConfig
-* @typedef {{ mode: 'ordered', noiseIntensity: number, thresholdMap: ImageData | null, palette: ImageData | null, orderedMethod: 'standard' | 'hue_lightness', colors: import('./utils').RGB[] }} OrderedDitherConfig
-     * @typedef {{ mode: 'error_diffusion', palette: ImageData | null, diffusionStrength: number, diffusionMatrix: number[][], diffusionMatrixOriginX: number }} ErrorDiffusionDitherConfig
+	 * @typedef {{ mode: 'ordered', noiseIntensity: number, thresholdMap: ImageData | null, palette: ImageData | null }} OrderedDitherConfig
+	 * @typedef {{ mode: 'error_diffusion', palette: ImageData | null, diffusionStrength: number, diffusionMatrix: number[][], diffusionMatrixOriginX: number }} ErrorDiffusionDitherConfig
 	 *
 	 * @typedef {(NoDitherConfig | OrderedDitherConfig | ErrorDiffusionDitherConfig) & BaseDitherConfig & Record<any,any>} DitherConfig
 	 */
@@ -58,16 +58,14 @@
 		{#if config.thresholdMap && config.palette}
 			<canvas
 				class="pixelated w-full"
-use:orderedDithering={{
-	image: image_data,
-	noiseIntensity: config.noiseIntensity,
-	palette: config.palette,
-	colors: config.colors,
-	orderedMethod: config.orderedMethod,
-	output_width: config.width,
-	output_height: config.height,
-	thresholdMap: config.thresholdMap
-}}
+				use:orderedDithering={{
+					image: image_data,
+					noiseIntensity: config.noiseIntensity,
+					palette: config.palette,
+					output_width: config.width,
+					output_height: config.height,
+					thresholdMap: config.thresholdMap
+				}}
 				bind:this={canvas}
 				width={config.width}
 				height={config.height}

@@ -76,11 +76,10 @@
 		/>
 	</div>
 	<div class={config.mode === 'ordered' ? 'contents' : 'hidden'}>
-<OrderedDitheringOptions
-	bind:thresholdMap={config.thresholdMap}
-	bind:noiseIntensity={config.noiseIntensity}
-	bind:orderedMethod={config.orderedMethod}
-/>
+		<OrderedDitheringOptions
+			bind:thresholdMap={config.thresholdMap}
+			bind:noiseIntensity={config.noiseIntensity}
+		/>
 	</div>
 </div>
 
@@ -88,9 +87,5 @@
 <div class="grid gap-3" class:hidden={config.mode === 'none'}>
 	<h2 class="mb-2 text-base font-semibold leading-7 text-black">Colors</h2>
 
-<PaletteOptions
-	bind:palette={config.palette}
-	bind:colors={config.colors}
-	image={image_data}
-/>
+	<PaletteOptions bind:palette={config.palette} image={image_data} />
 </div>
