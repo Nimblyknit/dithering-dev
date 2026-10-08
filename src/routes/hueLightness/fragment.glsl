@@ -10,6 +10,7 @@ uniform float uNoise;
 uniform vec2 uSize;
 
 uniform vec3 uColors[16];
+uniform vec3 uColorsHsl[16];
 uniform int uColorCount;
 
 vec3 rgbToHsl(vec3 c) {
@@ -81,6 +82,11 @@ void main(void) {
 	float threshold = texture2D(uNoiseSampler, noiseUV).r;
 
 	vec3 source = texture2D(uSampler, fragCoord).rgb;
+
+	/*
+	 * Only the source pixel needs RGB -> HSL conversion here.
+	 * Palette HSL values are calculated once in JavaScript.
+	 */
 	vec3 sourceHsl = rgbToHsl(source);
 
 	int bestIndex = 0;
@@ -91,8 +97,8 @@ void main(void) {
 
 	for (int i = 0; i < 16; i++) {
 		if (i < uColorCount) {
-			vec3 paletteHsl = rgbToHsl(uColors[i]);
-			float distance = colorDistance(sourceHsl, paletteHsl);
+			float distance =
+				colorDistance(sourceHsl, uColorsHsl[i]);
 
 			if (distance < bestDistance) {
 				secondDistance = bestDistance;
@@ -107,30 +113,29 @@ void main(void) {
 		}
 	}
 
-	float totalDistance = bestDistance + secondDistance;
+	float totalDistance =
+		bestDistance + secondDistance;
+
 	float mixAmount = 0.0;
 
 	if (totalDistance > 0.00001) {
-		mixAmount = bestDistance / totalDistance;
+		mixAmount =
+			bestDistance / totalDistance;
 	}
 
-	mixAmount = clamp(mixAmount * uNoise, 0.0, 1.0);
+	mixAmount =
+		clamp(mixAmount * uNoise, 0.0, 1.0);
 
-	vec3 outputColor = uColors[0];
-
-	for (int i = 0; i < 16; i++) {
-		if (i == bestIndex) {
-			outputColor = uColors[i];
-		}
-	}
+	/*
+	 * Select directly from the actual palette.
+	 * No new RGB colours are created.
+	 */
+	vec3 outputColor = uColors[bestIndex];
 
 	if (threshold < mixAmount) {
-		for (int i = 0; i < 16; i++) {
-			if (i == secondIndex) {
-				outputColor = uColors[i];
-			}
-		}
+		outputColor = uColors[secondIndex];
 	}
 
-	gl_FragColor = vec4(outputColor, 1.0);
+	gl_FragColor =
+		vec4(outputColor, 1.0);
 }
