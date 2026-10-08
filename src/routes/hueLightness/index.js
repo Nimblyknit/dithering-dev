@@ -1,6 +1,10 @@
 import vertex_src from '../ordered/vertex.glsl';
 import fragment_src from './fragment.glsl';
-import { initShaderProgram, setUpRect, textureFromImageData } from '../ordered/utils';
+import {
+	initShaderProgram,
+	setUpRect,
+	textureFromImageData
+} from '../ordered/utils';
 import { derived, writable } from 'svelte/store';
 
 /**
@@ -17,13 +21,63 @@ import { derived, writable } from 'svelte/store';
 /** @type {import("svelte/store").Writable<WebGLRenderingContext>} */
 const __hue_gl_store = writable();
 
-export const hueGlStore = derived(__hue_gl_store, (g) => g);
+export const hueGlStore =
+	derived(__hue_gl_store, (g) => g);
+
+/**
+ * Convert one RGB palette colour to HSL.
+ *
+ * RGB input is 0-255.
+ * HSL output is 0-1.
+ *
+ * @param {number[]} color
+ * @returns {number[]}
+ */
+function rgbToHsl(color) {
+	const r = color[0] / 255;
+	const g = color[1] / 255;
+	const b = color[2] / 255;
+
+	const max = Math.max(r, g, b);
+	const min = Math.min(r, g, b);
+	const delta = max - min;
+
+	let h = 0;
+	let s = 0;
+	const l = (max + min) / 2;
+
+	if (delta > 0.00001) {
+		s =
+			l < 0.5
+				? delta / (max + min)
+				: delta / (2 - max - min);
+
+		if (max === r) {
+			h = (g - b) / delta;
+
+			if (g < b) {
+				h += 6;
+			}
+		} else if (max === g) {
+			h = (b - r) / delta + 2;
+		} else {
+			h = (r - g) / delta + 4;
+		}
+
+		h /= 6;
+	}
+
+	return [h, s, l];
+}
 
 /**
  * @param {HTMLCanvasElement} canvas
  * @param {HueLightnessOptions} initialOptions
  */
-export function hueLightnessDithering(canvas, initialOptions) {
+export function hueLightnessDithering(
+	canvas,
+	initialOptions
+) {
 	let options = initialOptions;
 
 	/**
@@ -43,13 +97,25 @@ export function hueLightnessDithering(canvas, initialOptions) {
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	gl.clear(gl.COLOR_BUFFER_BIT);
 
-	const program = initShaderProgram(gl, vertex_src, fragment_src);
-	const { vertex_buffer, index_buffer } = setUpRect(gl);
+	const program =
+		initShaderProgram(
+			gl,
+			vertex_src,
+			fragment_src
+		);
+
+	const {
+		vertex_buffer,
+		index_buffer
+	} = setUpRect(gl);
 
 	gl.useProgram(program);
 
 	const position_attribute_location =
-		gl.getAttribLocation(program, 'position');
+		gl.getAttribLocation(
+			program,
+			'position'
+		);
 
 	gl.vertexAttribPointer(
 		position_attribute_location,
@@ -60,41 +126,79 @@ export function hueLightnessDithering(canvas, initialOptions) {
 		0
 	);
 
-	gl.enableVertexAttribArray(position_attribute_location);
+	gl.enableVertexAttribArray(
+		position_attribute_location
+	);
 
 	const uSampler =
-		gl.getUniformLocation(program, 'uSampler');
+		gl.getUniformLocation(
+			program,
+			'uSampler'
+		);
 
 	const uNoiseSampler =
-		gl.getUniformLocation(program, 'uNoiseSampler');
+		gl.getUniformLocation(
+			program,
+			'uNoiseSampler'
+		);
 
 	const uNoise =
-		gl.getUniformLocation(program, 'uNoise');
+		gl.getUniformLocation(
+			program,
+			'uNoise'
+		);
 
 	const uSize =
-		gl.getUniformLocation(program, 'uSize');
+		gl.getUniformLocation(
+			program,
+			'uSize'
+		);
 
 	const uNoiseSamplerSize =
-		gl.getUniformLocation(program, 'uNoiseSamplerSize');
+		gl.getUniformLocation(
+			program,
+			'uNoiseSamplerSize'
+		);
 
 	const uColorCount =
-		gl.getUniformLocation(program, 'uColorCount');
+		gl.getUniformLocation(
+			program,
+			'uColorCount'
+		);
 
 	const uColors =
-		gl.getUniformLocation(program, 'uColors[0]');
+		gl.getUniformLocation(
+			program,
+			'uColors[0]'
+		);
+
+	const uColorsHsl =
+		gl.getUniformLocation(
+			program,
+			'uColorsHsl[0]'
+		);
 
 	/** @type {WebGLTexture} */
 	let imageTexture;
 
-	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	gl.pixelStorei(
+		gl.UNPACK_FLIP_Y_WEBGL,
+		true
+	);
 
 	const loadImage = () => {
 		if (imageTexture) {
-			gl.deleteTexture(imageTexture);
+			gl.deleteTexture(
+				imageTexture
+			);
 		}
 
 		imageTexture =
-			textureFromImageData(gl, options.image, gl.LINEAR);
+			textureFromImageData(
+				gl,
+				options.image,
+				gl.LINEAR
+			);
 	};
 
 	loadImage();
@@ -107,7 +211,9 @@ export function hueLightnessDithering(canvas, initialOptions) {
 
 	const loadThresholdMap = () => {
 		if (thresholdMapTexture) {
-			gl.deleteTexture(thresholdMapTexture);
+			gl.deleteTexture(
+				thresholdMapTexture
+			);
 		}
 
 		thresholdMapTexture =
@@ -118,8 +224,10 @@ export function hueLightnessDithering(canvas, initialOptions) {
 			);
 
 		thresholdMapSize = {
-			width: options.thresholdMap.width,
-			height: options.thresholdMap.height
+			width:
+				options.thresholdMap.width,
+			height:
+				options.thresholdMap.height
 		};
 	};
 
@@ -136,8 +244,16 @@ export function hueLightnessDithering(canvas, initialOptions) {
 			options.output_height
 		);
 
-		gl.clearColor(0.0, 0.0, 0.0, 1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.clearColor(
+			0.0,
+			0.0,
+			0.0,
+			1.0
+		);
+
+		gl.clear(
+			gl.COLOR_BUFFER_BIT
+		);
 
 		gl.bindBuffer(
 			gl.ARRAY_BUFFER,
@@ -149,21 +265,39 @@ export function hueLightnessDithering(canvas, initialOptions) {
 			index_buffer
 		);
 
-		// Original image
-		gl.activeTexture(gl.TEXTURE0);
+		/*
+		 * Original image
+		 */
+		gl.activeTexture(
+			gl.TEXTURE0
+		);
+
 		gl.bindTexture(
 			gl.TEXTURE_2D,
 			imageTexture
 		);
-		gl.uniform1i(uSampler, 0);
 
-		// Threshold map
-		gl.activeTexture(gl.TEXTURE1);
+		gl.uniform1i(
+			uSampler,
+			0
+		);
+
+		/*
+		 * Threshold map
+		 */
+		gl.activeTexture(
+			gl.TEXTURE1
+		);
+
 		gl.bindTexture(
 			gl.TEXTURE_2D,
 			thresholdMapTexture
 		);
-		gl.uniform1i(uNoiseSampler, 1);
+
+		gl.uniform1i(
+			uNoiseSampler,
+			1
+		);
 
 		gl.uniform2f(
 			uNoiseSamplerSize,
@@ -183,26 +317,48 @@ export function hueLightnessDithering(canvas, initialOptions) {
 		);
 
 		/*
-		 * Hue-Lightness only uses actual selected
-		 * palette colours.
-		 *
-		 * Maximum: 16 colours.
+		 * Maximum 16 actual yarn colours.
 		 */
-		const colors = (options.colors || []).slice(0, 16);
+		const colors =
+			(options.colors || [])
+				.slice(0, 16);
 
-		const flattenedColors =
+		const rgbValues =
 			new Float32Array(16 * 3);
 
-		colors.forEach((color, index) => {
-			flattenedColors[index * 3] =
-				color[0] / 255;
+		const hslValues =
+			new Float32Array(16 * 3);
 
-			flattenedColors[index * 3 + 1] =
-				color[1] / 255;
+		colors.forEach(
+			(color, index) => {
+				rgbValues[
+					index * 3
+				] = color[0] / 255;
 
-			flattenedColors[index * 3 + 2] =
-				color[2] / 255;
-		});
+				rgbValues[
+					index * 3 + 1
+				] = color[1] / 255;
+
+				rgbValues[
+					index * 3 + 2
+				] = color[2] / 255;
+
+				const hsl =
+					rgbToHsl(color);
+
+				hslValues[
+					index * 3
+				] = hsl[0];
+
+				hslValues[
+					index * 3 + 1
+				] = hsl[1];
+
+				hslValues[
+					index * 3 + 2
+				] = hsl[2];
+			}
+		);
 
 		gl.uniform1i(
 			uColorCount,
@@ -211,7 +367,12 @@ export function hueLightnessDithering(canvas, initialOptions) {
 
 		gl.uniform3fv(
 			uColors,
-			flattenedColors
+			rgbValues
+		);
+
+		gl.uniform3fv(
+			uColorsHsl,
+			hslValues
 		);
 
 		gl.clear(
@@ -228,10 +389,17 @@ export function hueLightnessDithering(canvas, initialOptions) {
 	};
 
 	function invalidate() {
-		frame = requestAnimationFrame(() => {
-			render();
-			frame = null;
-		});
+		if (frame !== null) {
+			return;
+		}
+
+		frame =
+			requestAnimationFrame(
+				() => {
+					render();
+					frame = null;
+				}
+			);
 	}
 
 	invalidate();
@@ -242,10 +410,12 @@ export function hueLightnessDithering(canvas, initialOptions) {
 		 */
 		update(newOptions) {
 			const imageHasBeenChanged =
-				options.image !== newOptions.image;
+				options.image !==
+				newOptions.image;
 
 			const thresholdMapChanged =
-				options.thresholdMap !== newOptions.thresholdMap;
+				options.thresholdMap !==
+				newOptions.thresholdMap;
 
 			options = newOptions;
 
@@ -262,18 +432,26 @@ export function hueLightnessDithering(canvas, initialOptions) {
 
 		destroy() {
 			if (frame !== null) {
-				cancelAnimationFrame(frame);
+				cancelAnimationFrame(
+					frame
+				);
 			}
 
 			if (imageTexture) {
-				gl.deleteTexture(imageTexture);
+				gl.deleteTexture(
+					imageTexture
+				);
 			}
 
 			if (thresholdMapTexture) {
-				gl.deleteTexture(thresholdMapTexture);
+				gl.deleteTexture(
+					thresholdMapTexture
+				);
 			}
 
-			gl.deleteProgram(program);
+			gl.deleteProgram(
+				program
+			);
 		}
 	};
 }
