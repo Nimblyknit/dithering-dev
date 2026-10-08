@@ -85,12 +85,13 @@
 		/>
 	</div>
 
-	<div class={config.mode === 'hue_lightness' ? 'contents' : 'hidden'}>
-		<HueLightnessOptions
-			bind:thresholdMap={config.hueThresholdMap}
-			bind:noiseIntensity={config.hueNoiseIntensity}
-		/>
-	</div>
+{#if config.mode === 'hue_lightness'}
+    <HueLightnessOptions
+        bind:thresholdMap={config.hueThresholdMap}
+        bind:noiseIntensity={config.hueNoiseIntensity}
+    />
+{/if}
+
 </div>
 
 <!--Color Palette-->
